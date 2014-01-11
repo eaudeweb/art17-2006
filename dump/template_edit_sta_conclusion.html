@@ -1,0 +1,297 @@
+# Page Template
+# /article17/speciessummary/template_edit_sta_conclusion
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="conclusion">
+
+<tal:block define="ms_countries python:here.sql_methods.lookup_ms_countries(assesment_speciesname=assesment_speciesname, bioregion=region);
+		ok_conclusions python:here.get_eu25_conclusions(assesment_speciesname, region);
+		methods here/sql_methods/lookup_methods;
+		sf_methods here/sql_methods/select_struct_future_methods;
+		session request/SESSION;
+		assesm_methods here/sql_methods/lookup_assesment_methods;
+		trends here/sql_methods/lookup_trends;
+		units here/sql_methods/lookup_units;
+		conclusions here/filter_conclusions;
+		numeric_field_hint string:Only numeric values or intervals are accepted. <br /> The numbers can be with decimals only if the numbers are smaller than 10. <br /> Full stop '.' should be used as decimal separator The numbers can be preceded by a qualifier: '~', '>', '>>', '<'. <br /> Leave the cell blank only if it is not possible to calculate a value. <br /> Reference values should be indicated only by a qualifier if the numerical value is the same as the actual value. <br /> The automatic computation for the reference values is not able to calculate a value, unless the corresponding conclusion is favourable, therefore the reference values need to be computed manually.;">
+
+<tal:block condition="edit">
+	
+	<tal:block define="user_conclusions python:here.sql_methods.get_user_species_manual_assessment(assesment_speciesname=assesment_speciesname, region=region, user=username, ms=ms);
+				user_concl python:user_conclusions[0]">
+	<form name="conclusion_form" id="conclusion_form" method="post" action="updateSTAConclusion" tal:condition="python:user_concl['user']==auth_user">
+	<tr class="section-header">
+		<td tal:attributes="colspan python:test(region, 30, 31)">
+			<strong>Comment on biogeographical assessment at EU or MS level by proposing a correction</strong>
+			<a name="edit"></a>
+		</td>
+	</tr>
+	<tr>
+		<td class="section-header" tal:attributes="colspan python:test(region, 30, 31)">
+			<div class="important-msg" tal:condition="python:session.has_key('general-error')">
+				<span tal:replace="session/general_method_error" tal:condition="python:session.has_key('general_method_error')" />
+			</div>
+		</td>
+	</tr>
+	<tr id="edit-header">
+		<th>MS</th>
+		<!-- Range -->
+		<th>Surface</th>
+		<th>Meth.</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<!-- Population -->
+		<th>Size</th>
+		<th>Unit</th>
+		<th>Meth.</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<!-- Habitat -->
+		<th>Area</th>
+		<th>Meth.</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<th>Suitable</th>
+
+		<!-- Future prosp. -->
+		<th>Meth.</th>
+		<th>Concl.</th>
+
+		<!-- Overall assessment -->
+		<th>Meth.</th>
+		<th>Concl.</th>
+
+		<th colspan="7">&nbsp;</th>
+	</tr>
+	<tr id="edit-form-fields" class="edit-form">
+		<td class="center" tal:content="user_concl/MS" />
+		<input type="hidden" id="ms" name="ms" tal:attributes="value user_concl/MS" />
+		<td tal:attributes="title numeric_field_hint">
+			<input type="text" id="range_surface_area" name="range_surface_area" maxlength="23" size="5"
+					tal:attributes="value python:session.get('range_surface_area', user_concl['range_surface_area'])" />
+		</td>
+		<td>
+			<select id="method_range" name="method_range" class="medium-select">
+				<option tal:repeat="record methods" 
+					tal:content="record/method" 
+					tal:attributes="value record/method; selected python:record['method'] == session.get('method_range', user_concl['method_range'])" />
+			</select>
+		</td>
+		<td>
+			<select id="conclusion_range" name="conclusion_range" class="small-select">
+				<option tal:repeat="record conclusions" 
+					tal:content="record/conclusion" 
+					tal:attributes="value record/conclusion; selected python:record['conclusion'] == session.get('conclusion_range', user_concl['conclusion_range'])" />
+			</select>
+		</td>
+		<td>
+			<select id="range_trend" name="range_trend" class="small-select">
+				<option tal:repeat="record trends" 
+					tal:content="record/trend" 
+					tal:attributes="value record/trend; selected python:record['trend'] == session.get('range_trend', user_concl['range_trend'])" />
+			</select>
+		</td>
+		<input type="hidden" id="range_yearly_magnitude" name="range_yearly_magnitude" value="" />
+		<td class="section-border" tal:attributes="title numeric_field_hint">
+			<input type="text" id="complementary_favourable_range" name="complementary_favourable_range" maxlength="23" size="5"
+					tal:attributes="value python:session.get('complementary_favourable_range', user_concl['complementary_favourable_range'])" />
+		</td>
+		<td tal:attributes="title numeric_field_hint">
+			<input type="text" id="population_size" name="population_size" maxlength="30" size="5"
+					tal:attributes="value python:session.get('population_size', user_concl['population_size'])" />
+		</td>
+		<td>
+			<select id="population_size_unit" name="population_size_unit" class="large-select">
+				<option tal:repeat="record units" 
+					tal:content="record/population_units" 
+					tal:attributes="value record/population_units; selected python:record['population_units'] == session.get('population_size_unit', user_concl['population_size_unit'])" />
+			</select>
+		</td>
+		<td>
+			<select id="method_population" name="method_population" class="medium-select">
+				<option tal:repeat="record methods" 
+					tal:content="record/method" 
+					tal:attributes="value record/method; selected python:record['method'] == session.get('method_population', user_concl['method_population'])" />
+			</select>
+		</td>
+		<td>
+			<select id="conclusion_population" name="conclusion_population" class="small-select">
+				<option tal:repeat="record conclusions" 
+					tal:content="record/conclusion" 
+					tal:attributes="value record/conclusion; selected python:record['conclusion'] == session.get('conclusion_population', user_concl['conclusion_population'])" />
+			</select>
+		</td>
+		<td>
+			<select id="population_trend" name="population_trend" class="small-select">
+				<option tal:repeat="record trends" 
+					tal:content="record/trend" 
+					tal:attributes="value record/trend; selected python:record['trend'] == session.get('population_trend', user_concl['population_trend'])" />
+			</select>
+		</td>
+		<input type="hidden" id="population_yearly_magnitude" name="population_yearly_magnitude" value="" />
+		<td class="section-border" tal:attributes="title numeric_field_hint">
+			<input type="text" id="complementary_favourable_population" name="complementary_favourable_population" maxlength="23" size="5"
+					tal:attributes="value python:session.get('complementary_favourable_population', user_concl['complementary_favourable_population'])" />
+		</td>
+		<td tal:attributes="title numeric_field_hint">
+			<input type="text" id="habitat_surface_area" name="habitat_surface_area" maxlength="23" size="5"
+					tal:attributes="value python:session.get('habitat_surface_area', user_concl['habitat_surface_area'])" />
+		</td>
+		<td>
+			<select id="method_habitat" name="method_habitat" class="medium-select">
+				<option tal:repeat="record sf_methods" 
+					tal:content="record/method" 
+					tal:attributes="value record/method; selected python:record['method'] == session.get('method_habitat', user_concl['method_habitat'])" />
+			</select>
+		</td>
+		<td>
+			<select id="conclusion_habitat" name="conclusion_habitat" class="small-select">
+				<option tal:repeat="record conclusions" 
+					tal:content="record/conclusion" 
+					tal:attributes="value record/conclusion; selected python:record['conclusion'] == session.get('conclusion_habitat', user_concl['conclusion_habitat'])" />
+			</select>
+		</td>
+		<td>
+			<select id="habitat_trend" name="habitat_trend" class="small-select">
+				<option tal:repeat="record trends" 
+					tal:content="record/trend" 
+					tal:attributes="value record/trend; selected python:record['trend'] == session.get('habitat_trend', user_concl['habitat_trend'])" />
+			</select>
+		</td>
+		<td class="section-border" tal:attributes="title numeric_field_hint">
+			<input type="text" id="complementary_suitable_habitat" name="complementary_suitable_habitat" maxlength="23" size="5"
+					tal:attributes="value python:session.get('complementary_suitable_habitat', user_concl['complementary_suitable_habitat'])" />
+		</td>
+		<td>
+			<select id="method_future" name="method_future" class="medium-select">
+				<option tal:repeat="record sf_methods" 
+					tal:content="record/method" 
+					tal:attributes="value record/method; selected python:record['method'] == session.get('method_future', user_concl['method_future'])" />
+			</select>
+		</td>
+		<td class="section-border">
+			<select id="conclusion_future" name="conclusion_future" class="small-select">
+				<option tal:repeat="record conclusions" 
+					tal:content="record/conclusion" 
+					tal:attributes="value record/conclusion; selected python:record['conclusion'] == session.get('conclusion_future', user_concl['conclusion_future'])" />
+			</select>
+		</td>
+		<td>
+			<select id="method_assessment" name="method_assessment" class="medium-select">
+				<option tal:repeat="record assesm_methods" 
+					tal:content="record/method" 
+					tal:attributes="value record/method; selected python:record['method'] == session.get('method_assessment', user_concl['method_assessment'])" />
+			</select>
+		</td>
+		<td class="section-border">
+			<select id="conclusion_assessment" name="conclusion_assessment" class="small-select">
+				<option tal:repeat="record conclusions" 
+					tal:content="record/conclusion" 
+					tal:attributes="value record/conclusion; selected python:record['conclusion'] == session.get('conclusion_assessment', user_concl['conclusion_assessment'])" />
+			</select>
+		</td>
+		<td>
+			<input type="hidden" name="enable-warning" id="enable-warning" value="1" />
+			<input type="hidden" name="region" tal:attributes="value region" />
+			<input type="hidden" name="user" tal:attributes="value username" />
+			<input type="hidden" name="group" tal:attributes="value group" />
+			<input type="hidden" name="assesment_speciesname" tal:attributes="value species" />
+			<input type="hidden" name="decision" tal:attributes="value user_concl/decision" />
+			<input type="submit" name="edit-conclusion" id="edit-conclusion" value="Edit" />
+		</td>
+		<td>
+			<a id="hide_conclusion" class="close"
+				tal:attributes="href string:${here/absolute_url}?group=${group}&amp;species=${species}&amp;region=${region}#table_conclusions">Cancel</a>
+		</td>
+		<th colspan="5">&nbsp;</th>
+	</tr>
+	<tr>
+		<th>&nbsp;</th>
+		<th tal:condition="not:region">&nbsp;</th>
+		<td class="section-border" colspan="6">
+			<div class="important-msg" tal:condition="python:session.has_key('range-error')">
+				<tal:block condition="python:session.has_key('range_surface_area_error')">
+					Surface: <span tal:replace="session/range_surface_area_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('complementary_favourable_range_error')">
+					Ref.: <span tal:replace="session/complementary_favourable_range_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('range_yearly_magnitude_error')">
+					YMag.:<span tal:replace="session/range_yearly_magnitude_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('method_range_error')">
+					<span tal:replace="session/method_range_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="7">
+			<div class="important-msg" tal:condition="python:session.has_key('population-error')">
+				<tal:block condition="python:session.has_key('population_size_error')">
+					Size: <span tal:replace="session/population_size_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('complementary_favourable_population_error')">
+					Ref.: <span tal:replace="session/complementary_favourable_population_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('population_yearly_magnitude_error')">
+					YMag.:<span tal:replace="session/population_yearly_magnitude_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('method_population_error')">
+					<span tal:replace="session/method_population_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="5">
+			<div class="important-msg" tal:condition="python:session.has_key('habitat-error')">
+				<tal:block condition="python:session.has_key('habitat_surface_area_error')">
+					Area: <span tal:replace="session/habitat_surface_area_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('complementary_suitable_habitat_error')">
+					Suitable: <span tal:replace="session/complementary_suitable_habitat_error" /><br />
+				</tal:block>
+				<tal:block condition="python:session.has_key('method_habitat_error')">
+					<span tal:replace="session/method_habitat_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="2">
+			<div class="important-msg" tal:condition="python:session.has_key('future-error')">
+				<tal:block condition="python:session.has_key('method_future_error')">
+					<span tal:replace="session/method_future_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="2">
+			<div class="important-msg" tal:condition="python:session.has_key('assesment-error')">
+				<tal:block condition="python:session.has_key('method_assessment_error')">
+					<span tal:replace="session/method_assessment_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<th colspan="7">&nbsp;</th>
+	</tr>
+	</form>
+	<tal:block condition="python:session.has_key('warning-error')">
+	<script type="text/javascript">
+	<!--
+		warn_dialog.show();
+	//-->
+	</script>
+	</tal:block>
+
+	<tal:block condition="python:session.has_key('warning-valid-error')">
+	<script type="text/javascript">
+	<!--
+		warn_ok_dialog.show();
+	//-->
+	</script>
+	</tal:block>
+	<span tal:replace="session/invalidate" />
+	</tal:block>
+</tal:block>
+	</tal:block>
+</metal:block>
