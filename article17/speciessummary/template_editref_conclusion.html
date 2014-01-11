@@ -1,0 +1,131 @@
+# Page Template
+# /article17/speciessummary/template_editref_conclusion
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="conclusion">
+
+<tal:block define="methods here/sql_methods/lookup_methods;
+		session request/SESSION;
+		assesm_methods here/sql_methods/lookup_assesment_methods;
+		trends here/sql_methods/lookup_trends;
+		units here/sql_methods/lookup_units;
+		conclusions here/filter_conclusions;
+		numeric_field_hint string:Only numeric values or intervals are accepted. <br /> The numbers can be with decimals only if the numbers are smaller than 10. <br /> Full stop '.' should be used as decimal separator The numbers can be preceded by a qualifier: '~', '>', '>>', '<'. <br /> Leave the cell blank only if it is not possible to calculate a value. <br /> Reference values should be indicated only by a qualifier if the numerical value is the same as the actual value. <br /> The automatic computation for the reference values is not able to calculate a value, unless the corresponding conclusion is favourable, therefore the reference values need to be computed manually.;
+		method_field_hint string:At least one conclusion and method pair shall be added">
+
+<tal:block condition="editref">
+	
+	<tal:block define="user_conclusions python:here.sql_methods.get_user_species_manual_assessment(assesment_speciesname=assesment_speciesname, region=region, user=username);
+				user_concl python:user_conclusions[0]">
+	<form name="conclusion_form" id="conclusion_form" method="post" action="updateReference" tal:condition="python:(user_concl['user'] != auth_user) and (user_concl['user'] == 'iurieetcbd' or user_concl['user'] == 'maximiur') and (here.acl_manager.has_etc_role() or here.acl_manager.has_adm_role())">
+	<tr>
+		<td class="section-header" tal:attributes="colspan python:test(region, 30, 31)">
+			<strong>Edit Manual Assessment</strong>
+			<a name="edit"></a>
+		</td>
+	</tr>
+	<tr id="edit-header">
+		<th>&nbsp;</th>
+		<th tal:condition="not:region">&nbsp;</th>
+		<!-- Range -->
+		<th>Surface</th>
+		<th>Meth.</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<!-- Population -->
+		<th>Size</th>
+		<th>Unit</th>
+		<th>Meth.</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<!-- Habitat -->
+		<th>Area</th>
+		<th>Meth.</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<th>Suitable</th>
+
+		<!-- Future prosp. -->
+		<th>Meth.</th>
+		<th>Concl.</th>
+
+		<!-- Overall assessment -->
+		<th>Meth.</th>
+		<th>Concl.</th>
+
+		<th colspan="7">&nbsp;</th>
+	</tr>
+	<tr id="edit-form-fields" class="edit-form">
+		<th>&nbsp;</th>
+		<td tal:content="user_concl/range_surface_area" />
+		<td tal:content="user_concl/method_range" />
+		<td tal:content="user_concl/conclusion_range" />
+		<td tal:content="user_concl/range_trend" />
+		<td class="section-border" tal:attributes="title numeric_field_hint">
+			<input type="text" id="complementary_favourable_range" name="complementary_favourable_range" maxlength="23" size="5"
+					tal:attributes="value python:session.get('complementary_favourable_range', user_concl['complementary_favourable_range'])" />
+		</td>
+		<td tal:content="user_concl/population_size" />
+		<td tal:content="user_concl/population_size_unit" />
+		<td tal:content="user_concl/method_population" />
+		<td tal:content="user_concl/conclusion_population" />
+		<td tal:content="user_concl/population_trend" />
+		<td class="section-border" tal:attributes="title numeric_field_hint">
+			<input type="text" id="complementary_favourable_population" name="complementary_favourable_population" maxlength="23" size="5"
+					tal:attributes="value python:session.get('complementary_favourable_population', user_concl['complementary_favourable_population'])" />
+		</td>
+		<td tal:content="user_concl/habitat_surface_area" />
+		<td tal:content="user_concl/method_habitat" />
+		<td tal:content="user_concl/conclusion_habitat" />
+		<td tal:content="user_concl/habitat_trend" />
+		<td tal:content="user_concl/complementary_suitable_habitat" />
+		<td tal:content="user_concl/method_future" />
+		<td tal:content="user_concl/conclusion_future" />
+		<td tal:content="user_concl/method_assessment" />
+		<td tal:content="user_concl/conclusion_assessment" />
+		<td>
+			<input type="hidden" name="region" tal:attributes="value region" />
+			<input type="hidden" name="conclusion_owner" tal:attributes="value user_concl/user" />
+			<input type="hidden" name="group" tal:attributes="value group" />
+			<input type="hidden" name="assesment_speciesname" tal:attributes="value species" />
+			<input type="submit" name="edit-conclusion" id="edit-conclusion" value="Edit" />
+		</td>
+		<td>
+			<a id="hide_conclusion" class="close"
+				tal:attributes="href string:${here/absolute_url}?group=${group}&amp;species=${species}&amp;region=${region}#table_conclusions">Cancel</a>
+		</td>
+		<th colspan="5">&nbsp;</th>
+	</tr>
+	<tr>
+		<th>&nbsp;</th>
+		<th tal:condition="not:region">&nbsp;</th>
+		<td class="section-border" colspan="6">
+			<div class="important-msg" tal:condition="python:session.has_key('range-error')">
+				<tal:block condition="python:session.has_key('complementary_favourable_range_error')">
+					Ref.: <span tal:replace="session/complementary_favourable_range_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="7">
+			<div class="important-msg" tal:condition="python:session.has_key('population-error')">
+				<tal:block condition="python:session.has_key('complementary_favourable_population_error')">
+					Ref.: <span tal:replace="session/complementary_favourable_population_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="5"></td>
+		<td class="section-border" colspan="2"></td>
+		<td class="section-border" colspan="2"></td>
+		<th colspan="7">&nbsp;</th>
+	</tr>
+	</form>
+	<span tal:replace="session/invalidate" />
+	</tal:block>
+</tal:block>
+	</tal:block>
+</metal:block>

@@ -1,0 +1,38 @@
+# Page Template
+# /article17/speciessummary/template_conclusion_details
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="conclusions">
+	<tal:block define="nr_comments python:here.sql_methods.select_comments_number(region=record['region'], assesment_speciesname=here.string_decode(species), user=record['user'], ms=record['MS']);
+			nr_readed python:here.sql_methods.select_comments_read_number(region=record['region'], assesment_speciesname=here.string_decode(species), user=record['user'], ms=record['MS'], reader=auth_user);">
+
+	<td class="center section-border" tal:condition="python:auth_user != 'Anonymous User'">
+		<a name="delete_record" tal:define="elid string:${species}###${record/region}###${record/user}###${record/MS};"
+					tal:condition="python:record['user'] == auth_user and record['deleted_record']" 
+					tal:attributes="id string:href${elid}; 
+							name string:href${elid}; 
+							href string:javascript:markConclusion('${elid}')">undelete</a>
+		<a name="delete_record" tal:define="elid string:${species}###${record/region}###${record/user}###${record/MS};"
+					tal:condition="python:record['user'] == auth_user and not record['deleted_record']" 
+					tal:attributes="id string:href${elid}; 
+							name string:href${elid}; 
+							href string:javascript:markConclusion('${elid}')">delete</a>
+	</td>
+	<td class="center section-border">
+		<a name="edit_record" 
+			tal:condition="python:record['user'] == auth_user"
+			tal:attributes="href string:${here/absolute_url}?group=${group}&amp;species=${species}&amp;region=${record/region}&amp;user=${record/user}&amp;ms=${record/MS}&amp;edit=1#edit">edit</a>
+		<a name="edit_record" 
+			tal:condition="python:(record['user'] != auth_user) and (record['user'] == 'iurieetcbd' or record['user'] == 'maximiur') and (here.acl_manager.has_etc_role() or here.acl_manager.has_adm_role())"
+			tal:attributes="href string:${here/absolute_url}?group=${group}&amp;species=${species}&amp;region=${record/region}&amp;user=${record/user}&amp;ms=${record/MS}&amp;editref=1#edit">edit</a>
+	</td>
+	<td tal:attributes="class python:test(len(nr_comments)!=len(nr_readed), 'center attention section-border', 'center section-border') ">
+		<a tal:define="comments_url python:'%s/comments_html?region=%s&amp;species=%s&amp;user=%s&amp;ms=%s&amp;del=%s' % (here.absolute_url(), record['region'], species, record['user'], record['MS'], record['deleted_record'])"
+			tal:attributes="href string:javascript:openCommentsPage('${comments_url}')"
+			tal:content="python:'%s/%s' % (len(nr_comments) , len(nr_readed))" />
+	</td>
+	<td class="center section-border" tal:content="python:here.convertStr2Date(record['last_update']).strftime('%d/%m')" />
+	<td class="center section-border" tal:content="python:here.acl_manager.getUserFullName(record['user'])" />
+	<td class="center section-border" tal:content="python:here.acl_manager.getUserInstAbbrev(record['user'])" tal:attributes="title python:here.acl_manager.getUserInstitution(record['user'])" />
+	<td tal:content="record/MS" />
+	</tal:block>
+</metal:block>
