@@ -1,0 +1,2 @@
+-- External Method
+-- /article17/habitatsummary/details/get_coordinates

@@ -1,0 +1,112 @@
+# Page Template
+# /article17/habitatsummary/template_editref_conclusion
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="conclusion">
+	<tal:block define="methods here/sql_methods/select_methods;
+			session request/SESSION;
+			assesm_methods here/sql_methods/select_assesment_methods;
+			trends here/sql_methods/lookup_trends;
+			conclusions here/filter_conclusions;
+			numeric_field_hint string:Only numeric values or intervals are accepted. <br /> The numbers can be float with '.' for decimals and 2 decimals;
+			method_field_hint string:At least one conclusion and method pair shall be added">
+
+<tal:block condition="editref">
+	
+	<tal:block define="user_conclusions python:here.sql_methods.get_user_habitat_manual_assessment(habitatcode=habitat, region=region, user=username);
+				user_concl python:user_conclusions[0]">
+	<form name="conclusion_form" id="conclusion_form" method="post" action="updateReference" tal:condition="python:(user_concl['user'] != auth_user) and (user_concl['user'] == 'iurieetcbd' or user_concl['user'] == 'maximiur') and (here.acl_manager.has_etc_role() or here.acl_manager.has_adm_role())">
+	<tr class="section-header">
+		<td tal:attributes="colspan python:test(region, 25, 26)"><strong>Edit Manual Assessment</strong></td>
+	</tr>
+	<tr>
+		<th>&nbsp;</th>
+		<th tal:condition="not:region">&nbsp;</th>
+		<th>Surface</th>
+		<th>Method</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<th>Surface</th>
+		<th>Method</th>
+		<th>Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<th>Method</th>
+		<th>Concl.</th>
+
+		<th>Method</th>
+		<th>Concl.</th>
+
+		<th>Method</th>
+		<th>Concl.</th>
+		<th colspan="6">&nbsp;</th>
+	</tr>
+	<tr>
+		<th>&nbsp;</th>
+		<th tal:condition="not:region">&nbsp;</th>
+		<td tal:content="user_concl/range_surface_area" />
+		<td tal:content="user_concl/method_range" />
+		<td tal:content="user_concl/conclusion_range" />
+		<td tal:content="user_concl/range_trend" />
+		<td tal:attributes="title numeric_field_hint">
+			<input type="text" id="complementary_favourable_range" name="complementary_favourable_range" maxlength="23" size="7"
+					tal:attributes="value python:session.get('complementary_favourable_range', user_concl['complementary_favourable_range'])" />
+		</td>
+		<td tal:content="user_concl/coverage_surface_area" />
+		<td tal:content="user_concl/method_area" />
+		<td tal:content="user_concl/conclusion_area" />
+		<td tal:content="user_concl/coverage_trend" />
+		<td tal:attributes="title numeric_field_hint">
+			<input type="text" id="complementary_favourable_area" name="complementary_favourable_area" maxlength="20" size="7"
+					tal:attributes="value python:session.get('complementary_favourable_area', user_concl['complementary_favourable_area'])" />
+		</td>
+		<td tal:content="user_concl/method_structure" />
+		<td tal:content="user_concl/conclusion_structure" />
+		<td tal:content="user_concl/method_future" />
+		<td tal:content="user_concl/conclusion_future" />
+		<td tal:content="user_concl/method_assessment" />
+		<td tal:content="user_concl/conclusion_assessment" />
+		<td>
+			<input type="hidden" name="region" tal:attributes="value region" />
+						<input type="hidden" name="conclusion_owner" tal:attributes="value user_concl/user" />
+			<input type="hidden" name="group" tal:attributes="value group" />
+			<input type="hidden" name="habitat" tal:attributes="value habitat" />
+			<input type="submit" name="edit-conclusion" id="edit-conclusion" value="Edit" />
+		</td>
+		<td>
+			<a id="hide_conclusion" tal:attributes="href string:${here/absolute_url}?group=${group}&amp;habitat=${habitat}&amp;region=${region}#table_conclusions" class="close">Cancel</a>
+		</td>
+		<th colspan="4">&nbsp;</th>
+	</tr>
+	<tr>
+		<th>&nbsp;</th>
+		<th tal:condition="not:region">&nbsp;</th>
+		<td class="section-border" colspan="5">
+			<div class="important-msg" tal:condition="python:session.has_key('range-error')">
+				<tal:block condition="python:session.has_key('complementary_favourable_range_error')">
+					Ref.: <span tal:replace="session/complementary_favourable_range_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="5">
+			<div class="important-msg" tal:condition="python:session.has_key('coverage-error')">
+				<tal:block condition="python:session.has_key('complementary_favourable_area_error')">
+					Ref.: <span tal:replace="session/complementary_favourable_area_error" /><br />
+				</tal:block>
+			</div>
+		</td>
+		<td class="section-border" colspan="2"></td>
+		<td class="section-border" colspan="2"></td>
+		<td class="section-border" colspan="2"></td>
+		<th colspan="7">&nbsp;</th>
+	</tr>
+	</form>
+	<span tal:replace="session/invalidate" />
+	</tal:block>
+</tal:block>
+	</tal:block>
+</metal:block>

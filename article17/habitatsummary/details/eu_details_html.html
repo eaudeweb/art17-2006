@@ -1,0 +1,94 @@
+# Page Template
+# /article17/habitatsummary/details/eu_details_html
+<html>
+<head>
+	<title tal:content="template/title">Map</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+	<script type="text/javascript" tal:attributes="src string:${here/aq_parent/aq_parent/absolute_url}/javascripts/AC_OETags.js"></script>
+	<script language="JavaScript" type="text/javascript">
+		<!--
+		var requiredMajorVersion = 9;
+		var requiredMinorVersion = 0;
+		var requiredRevision = 0;
+		// -->
+	</script>
+</head>
+<body>
+	<tal:block define="habitat python:request.get('habitat', '');
+			region python:request.get('region', '');
+			auth_user python:request.AUTHENTICATED_USER.getUserName();
+			auth_roles python:here.acl_manager.getSpecificUserRoles(auth_user);
+			restricted_habitats python:here.sql_methods.get_map_restricted_habitats(habitatcode=habitat);
+			hbs python:here.convertCursorToList(restricted_habitats, 'habitatcode')">
+
+	<style>
+	#flashcontent {
+		width: 680px;
+		height: 400px;
+	}
+	</style>
+	<script type="text/javascript" src="swfobject.js"></script>
+	<script type="text/javascript">
+	<!--
+		function openNewWindow(URLtoOpen, windowName, windowFeatures) {
+		// open a child popup
+			var newWin = window.open("", windowName, windowFeatures);
+			if (newWin != null) {
+				newWin.location.href = URLtoOpen;
+				newWin.focus();
+				childPopups[childPopupNr++] = newWin;
+			}
+		}
+		function closeDepWins() {
+		// Close any open child popup windows (called from body onUnload event)
+			for (var i = 0; i < childPopups.length; i++) {
+				if (childPopups[i] && !childPopups[i].closed) {
+					childPopups[i].close();
+				}
+			}
+		}
+		// Version check based upon the values entered above in "Globals"
+		var hasReqestedVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
+		if (hasReqestedVersion == false) {
+			alternateContent = '<h3>This page requires the Adobe Flash Player version ' + requiredMajorVersion + '.  ' + '<a href="http:\/\/www.adobe.com\/go\/getflashplayer">Download Flash 9<\/a><\/h3>';
+			document.write(alternateContent);
+		}
+    
+function flamingo_onConfigComplete(){
+   //get swf object in htmlpage
+   var app = getMovie("flamingo"); //force an update of component with id='map1'
+   if(app) {
+    app.call("map1","update", 0, true);
+   } else {
+    alert("No app");
+   }
+}
+
+
+function getMovie(movieName) {
+    if (navigator.appName.indexOf("Microsoft") != -1) {
+        return window[movieName];
+    }else {
+        return document[movieName];
+    }
+}
+    
+	// -->
+	</script>
+	<noscript>
+		<a href="http://www.adobe.com/go/getflashplayer">Download Flash 9<object width="32" height="32"></object></a>
+	</noscript>
+
+	<tal:block condition="python:(habitat not in hbs) or auth_roles['expert'] or auth_roles['administrator']">
+		<div id="flashcontent">
+			<span tal:replace="structure python:here.get_js(region, habitat)" />
+		</div>
+	</tal:block>
+
+	<tal:block condition="python:habitat in hbs and not (auth_roles['expert'] or auth_roles['administrator'])">
+		<h3>EEA has provided a European "distribution/population/range" map to the European Commission</h3>
+	</tal:block>
+
+	</tal:block>
+</body>
+</html>

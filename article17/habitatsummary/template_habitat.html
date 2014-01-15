@@ -1,0 +1,21 @@
+# Page Template
+# /article17/habitatsummary/template_habitat
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+
+	<td tal:define="attrs python:here.attrs_content.td_habitat_area(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_habitat_surface_area(record, qa_errors)"
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_habitat_grid_area(record, qa_errors)"
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_habitat_trend(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_habitat_complementary_suitable(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+</metal:block>

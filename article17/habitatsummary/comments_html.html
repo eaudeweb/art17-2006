@@ -1,0 +1,121 @@
+# Page Template
+# /article17/habitatsummary/comments_html
+<html>
+<head>
+	<title tal:content="template/title">The title</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+	<script type="text/javascript" tal:attributes="src string:${here/aq_parent/absolute_url}/javascripts/remote.js"></script>
+	<span tal:replace="python:request.RESPONSE.setHeader('content-type', 'text/html;charset=utf-8')"/>
+	<link rel="stylesheet" type="text/css" tal:attributes="href string:${here/absolute_url}/local_stylesheet" media="screen" />
+</head>
+<body>
+
+<script language="JavaScript" type="text/javascript">
+	//window.onclose=function(){ //changed to (my bad)
+	window.onunload=function(){ 
+	window.opener.location.reload();
+	}
+</script>
+
+<h2>Comments</h2>
+
+<tal:block define="region python:request.get('region', '');
+		habitat python:request.get('habitat', '');
+		concl_owner python:request.get('user', '');
+		user python:request.get('user', '');
+		ms python:request.get('ms', '');
+		action python:request.get('action', 'add');
+		auth_user python:request.AUTHENTICATED_USER.getUserName();
+		comment_id python:request.get('id', '');
+		comments python:here.sql_methods.select_comments(region=region, habitat=habitat, user=user, ms=ms);
+		read_comments python:here.getReadComments(auth_user);
+		can_post_comm python:here.canPostComments(comments, concl_owner, auth_user, action)">
+
+<form name="comments-manage-form" id="comments-manage-form" method="post" action="manageComment">
+<div id="comments">
+	<p class="jump" tal:condition="python:action!='edit'"><a href="#add-comment" tal:condition="python:can_post_comm and (auth_user != 'Anonymous User')" title="Add a comment for this conclusion">Add a comment &#8595;</a></p>
+	<tal:block condition="python:not here.acl_manager.has_ano_role()">
+	<p tal:condition="comments">
+		<strong>Comment colours:</strong>
+		<span style="color: rgb(224, 124, 34);">red border shows your comment</span>,
+		<span style="color: rgb(135, 179, 207);">blue borders shows the comments that have been read</span>,
+		<span style="color: rgb(135, 139, 142);">grey borders shows the comments that have been deleted</span>
+	</p>
+	</tal:block>
+	<ol id="comments-list" tal:condition="comments">
+		<tal:block repeat="comment comments">
+		<li tal:define="isOwner python:auth_user == comment['author']" 
+			tal:attributes="class python:here.generate_comment_bgcolor(isOwner, read_comments, comment['deleted'], comment['id']); id comment/id">
+
+			<span class="actions" tal:condition="python:auth_user != 'Anonymous User'">
+				&nbsp;<a tal:attributes="href string:javascript:markCommentReadStatus('${comment/id}', '${auth_user}');
+							id string:read${comment/id}; name string:read${comment/id};" 
+						tal:condition="python:comment['id'] not in read_comments">mark as read</a>
+				&nbsp;<a tal:attributes="href string:javascript:markCommentReadStatus('${comment/id}', '${auth_user}');
+							id string:read${comment/id}; name string:read${comment/id};" 
+						tal:condition="python:comment['id'] in read_comments">mark as unread</a>
+			</span>
+
+			<span class="actions" tal:condition="isOwner">
+				<a tal:attributes="id string:edit${comment/id};
+						href string:${here/absolute_url}/comments_html?region=${region}&amp;habitat=${habitat}&amp;user=${user}&amp;ms=${ms}&amp;id=${comment/id}&amp;action=edit#edit-comment;
+						style python:test(comment['deleted'], 'display:none', 'display:inline')">edit</a>&nbsp;
+				<a tal:attributes="id string:del${comment/id}; name string:del${comment/id};
+							href string:javascript:markCommentDeleteStatus('${comment/id}', '${auth_user}')" 
+					tal:condition="comment/deleted">undedelete</a>
+				<a tal:attributes="id string:del${comment/id}; name string:del${comment/id};
+							href string:javascript:markCommentDeleteStatus('${comment/id}', '${auth_user}')" 
+					tal:condition="not:comment/deleted">delete</a>
+			</span>
+			<dl>
+				<dt tal:define="user_name python:here.acl_manager.getUserFullName(comment['author'])">
+					<tal:block condition="user_name"><span tal:replace="user_name" /> - </tal:block>
+					<span tal:replace="python:here.acl_manager.getUserInstitution(comment['author'])" />:
+				</dt>
+				<dd tal:content="structure python:here.linebreaks(comment['comment'], autoescape=True)" />
+				<dd class="comment-date">Posted on: <span tal:replace="comment/post_date" /></dd>
+			</dl>
+
+		</li>
+		</tal:block>
+	</ol>
+	<p tal:condition="not:comments">No comments were added</p>
+	<p class="jump"><a href="#comments" title="Jump up to the start of the comments &#8593;">Start of the comments</a> &#8593;</p>
+</div>
+</form>
+
+<form method="post" action="manageComment" tal:define="form_id string:comment-${action}-form" 
+						tal:attributes="name form_id; id form_id" tal:condition="python:can_post_comm and (auth_user != 'Anonymous User')">
+	<fieldset tal:attributes="id string:${action}-comment">
+	<legend tal:content="python:test(action=='edit', 'Edit comment', 'Add comment')" />
+		<p><label for="comment">Comment:</label>
+		<br/>
+			<textarea id="comment" name="comment" cols="50" rows="10" tal:condition="not:comment_id"></textarea>
+			<textarea id="comment" name="comment" cols="50" rows="10" 
+				tal:condition="comment_id"
+				tal:define="content python:here.sql_methods.select_comment_by_id(id=comment_id)"
+				tal:content="python:content[0]['comment']" />
+		<br/>
+		<small>
+			(Comment textarea: 
+			<span style="cursor: pointer;" onclick="document.getElementById('comment').rows += 5;" title="Click to enlarge the comments textarea">Increase size &#8595;</span> |
+			<span style="cursor: pointer;" onclick="document.getElementById('comment').rows -= 5;" title="Click to decrease the comments textarea">Decrease size &#8593;</span>)
+		</small>
+		<br />
+
+		<input type="hidden" name="region" tal:attributes="value region" />
+		<input type="hidden" name="habitat" tal:attributes="value habitat" />
+		<input type="hidden" name="user" tal:attributes="value user" />
+		<input type="hidden" name="ms" tal:attributes="value ms" />
+		<input type="hidden" name="author" tal:attributes="value auth_user" />
+		<input type="hidden" name="comment_id" tal:attributes="value comment_id" tal:condition="python:action == 'edit'" />
+		<input type="submit" tal:define="submit_id python:test(action=='edit', 'edit_button', 'add_button')"
+					tal:attributes="id submit_id; name submit_id;" value="Submit" />
+		<a id="cancel" tal:condition="python:action == 'edit'"
+			tal:attributes="href string:${here/absolute_url}/comments_html?region=${region}&amp;habitat=${habitat}&amp;user=${user}&amp;ms=${ms}&amp;action=add" class="close">Cancel</a>
+	</fieldset>
+</form>
+
+</tal:block>
+</body>
+</html>

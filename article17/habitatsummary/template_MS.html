@@ -1,0 +1,30 @@
+# Page Template
+# /article17/habitatsummary/template_MS
+<tal:comment condition="nothing">You must define a record</tal:comment>
+
+<metal:block define-macro="content">
+	<tal:block define="envelope record/envelope;
+			filename record/filename;
+			url_pieces python:here.parse_envelope_url(envelope);
+			envelope_url python:'%s://%s/Converters/run_conversion?file=%s/%s&conv=23&source=remote#%s' % (url_pieces[0], url_pieces[1], url_pieces[2], filename, region)">
+
+	<td tal:define="attrs python:here.attrs_content.td_range_MS(record)" style="text-decoration:underline;cursor: pointer;"
+		tal:attributes="class attrs/class; title attrs/title; onclick string:openCDRPage('${envelope_url}')" tal:content="structure attrs/content" />
+
+
+	<!--
+	<td class="center section-border" style="text-decoration:underline;cursor: pointer;"
+		tal:content="record/eu_country_code | default" 
+		tal:attributes="onclick string:openCDRPage('${envelope_url}')"
+		title="Click to open original report in a new window">N/A</td>
+	-->
+
+	</tal:block>
+</metal:block>
+
+
+<metal:block define-macro="total">
+	<td class="center section-border">
+		<div tal:attributes="title python:here.getMethodDetails(record['assessment_method'])" tal:content="record/assessment_method | default">N/A</div>
+	</td>
+</metal:block>

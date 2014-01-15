@@ -1,0 +1,302 @@
+# Page Template
+# /article17/habitatsummary/index_html
+<span tal:replace="structure here/standard_html_header" />
+
+<div id="warning_container"></div>
+<noscript>
+<div class="important-msg">
+	<strong>WARNING:</strong> JavaScript is either disabled or not installed. In order to use this application please enable or install it.
+</div>
+</noscript>
+
+<tal:block define="group python:request.get('group', '');
+		habitat python:request.get('habitat', '');
+		region python:request.get('region', '');
+		ms python:request.get('ms', '');
+		parent_url here/aq_parent/absolute_url;
+		auth_user python:request.AUTHENTICATED_USER.getUserName();
+		edit python:request.get('edit', 0);
+		editref python:request.get('editref', 0);
+		username python:request.get('user', '');
+		conclusions here/sql_methods/select_conclusions;
+		conclusions_dict python:here.gen_dict(conclusions, 'conclusion', 'details');
+		auth_roles python:here.acl_manager.getSpecificUserRoles(auth_user)">
+
+<link rel="stylesheet" type="text/css" tal:attributes="href string:${parent_url}/javascripts/fonts-min.css" />
+<link rel="stylesheet" type="text/css" tal:attributes="href string:${parent_url}/javascripts/button.css" />
+<link rel="stylesheet" type="text/css" tal:attributes="href string:${parent_url}/javascripts/container.css" />
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/yahoo-dom-event.js"></script>
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/element-beta-min.js"></script>
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/button-min.js"></script>
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/container-min.js"></script>
+
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/qTip.js"></script>
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/common.js"></script>
+<script type="text/javascript" tal:attributes="src string:${here/absolute_url}/javascripts/remote.js"></script>
+
+<tal:block condition="here/acl_manager/has_sta_role">
+	<span tal:replace="structure here/conclusion_err_javascript" />
+	<span tal:replace="structure here/conclusion_ok_javascript" />
+</tal:block>
+<tal:block condition="not:here/acl_manager/has_sta_role">
+	<span tal:replace="structure here/conclusion_javascript" />
+</tal:block>
+
+<p>Assessments on the <strong>conservation status of the habitat types and species</strong> of Community interest have been carried out in EU 25 for the period 2001-2006, compiled as part of the Habitats Directive - Article 17 reporting process. The data summary sheet for habitat conservation status provides an overview per biogeographical region. Once a selection has been made the conservation status can be visualised in a map view.<br />
+Choose a group, then a habitat belonging to that group. Optionally, further refine your query by selecting one of the available biogeographical regions for that habitat. <br /><br />
+<strong>NOTE:</strong> Texts in blue shows relevant information on mouse over. The conservation status colours are explained on mouse over. Rows in italic shows data not taken into account when performing the assessments (marginal presence, occasional, extinct prior HD, information, etc)</p>
+
+<form name="filterform" id="filterform" action="." method="get">
+	<fieldset><legend>Groups&hellip;</legend>
+		<select name="group" id="group" onChange="javascript:changeHabitatGroup();">
+			<tal:block repeat="record here/getGroups">
+			<option tal:attributes="value python:here.string_encode(record); selected python:here.string_encode(record) == group"
+				tal:content="record" />
+			</tal:block>
+		</select>*
+	</fieldset>
+
+	<fieldset><legend>Habitats&hellip;</legend>
+		<select name="habitat" id="habitat" onChange="javascript:changeHabitat();">
+			<option value="">&nbsp;</option>
+		</select>*
+	</fieldset>
+
+	<fieldset><legend>Bio-region&hellip;</legend>
+		<select name="region" id="region">
+			<option value="">&nbsp;</option>
+		</select>
+	</fieldset>
+
+	<fieldset>
+		<input type="submit" id="filter-submit" name="filter-submit" value="Filter" onclick="this.disabled=true,this.form.submit();" />
+	</fieldset>
+
+	<tal:block condition="python:group and habitat">
+
+	<fieldset>
+		<input type="button" id="show-map" name="show-map" value="Show map" 
+			tal:attributes="onclick string:javascript:openMapPage('${here/absolute_url}/details/eu_details_html?habitat=${habitat}&amp;region=${region}', 'Map');"/>
+	</fieldset>
+
+	<fieldset tal:define="wiki_abs_path string:${here/absolute_url}/wiki?region=${region}&amp;habitat=${habitat};
+			wiki_text python:here.wiki.get_wiki_text(region, '', habitat);
+			wiki_url python:test(wiki_text == '', '%s&amp;action=wiki#wiki-edit' % wiki_abs_path, wiki_abs_path);">
+
+		<input type="button" id="show-wiki" name="show-wiki"
+			tal:attributes="onclick string:javascript:openCommentsPage('${wiki_url}', 'data_sheet_info');
+				value python:test(wiki_text != '', 'Edit data sheet info', 'Add data sheet info')"
+			tal:condition="here/acl_manager/checkPermissionEditWiki" />
+
+		<input type="button" id="show-wiki" name="show-wiki"
+			tal:attributes="onclick string:javascript:openCommentsPage('${wiki_abs_path}', 'data_sheet_info');
+					value python:test(wiki_text != '', 'View data sheet info', 'View data sheet info (empty)')"
+			tal:condition="not:here/acl_manager/checkPermissionEditWiki" />
+	</fieldset>
+
+	<fieldset tal:define="wiki_abs_path string:${here/absolute_url}/wiki_trail?region=${region}&amp;habitat=${habitat};
+				wiki_text python:here.wiki_trail.get_wiki_text(region, '', habitat);
+				wiki_url python:test(wiki_text == '', '%s&amp;action=wiki#wiki-edit' % wiki_abs_path, wiki_abs_path);">
+
+		<input type="button" id="show-wiki-trail" name="show-wiki-trail"
+			tal:attributes="onclick string:javascript:openCommentsPage('${wiki_url}', 'Audit_trail');
+					value python:test(wiki_text != '', 'Audit trail', 'Audit trail (empty)')" />
+	</fieldset>
+
+	<fieldset tal:condition="here/acl_manager/has_etc_role" tal:define="gallery_url string:${here/absolute_url}/gallery?type=habitats&amp;habitatcode=${habitat}">
+		<input type="button" id="show-gallery" name="show-gallery"
+			tal:attributes="onclick string:javascript:openCommentsPage('${gallery_url}', 'Gallery')" value="Pictures" />
+	</fieldset>
+
+	</tal:block>
+
+</form>
+
+
+<tal:block condition="python:not(group and habitat)">
+	<strong>Please select a group and a habitat.</strong>
+</tal:block>
+
+<tal:block condition="python:group and habitat">
+<tal:block define="habitats python:here.sql_methods.select_habitat_details(habitatcode=habitat, region=region);
+		rhabitats python:here.sql_methods.get_data_restricted_habitats(habitatcode=habitat);
+		rcountries python:here.convertCursorToList(rhabitats, 'eu_country_code')">
+<p>
+	<strong>Current selection:</strong>
+	<span tal:replace="python:here.string_decode(group)" />, 
+	<span tal:replace="habitat" /> - <span tal:define="habitatname python:here.sql_methods.lookup_habitat_name(habitatcode=habitat)" tal:replace="python:habitatname[0]['name']" />, 
+	<span tal:replace="python:here.sql_methods.lookup_bioregion().get(region,'All biogeo zones')" />.
+	<strong>Annex: </strong><span tal:replace="python:here.getHabitatAnnexes(habitat)" />.&nbsp;
+	<span><a tal:define="group_name python:here.string_decode(group)"
+		tal:attributes="href string:${parent_url}/habitatsprogress?group=${group}&amp;conclusion=conclusion_assessment;
+				title string:Article 17 Experts Consultation: show all ${group_name}"
+		tal:content="string:Show all ${group_name}" />
+	</span>
+</p>
+
+<table class="datatable" tal:condition="habitats" id="table_conclusions">
+<thead>
+	<tr class="section-header">
+		<td tal:attributes="colspan python:test(region, 25, 26)">
+			<strong>ETC/BD treated member states' data</strong>
+		</td>
+	</tr>
+	<tr>
+		<th rowspan="2" title="Member States">MS</th>
+		<th rowspan="2" tal:condition="not:region">Bio</th>
+		<th colspan="5">Range (km<sup>2</sup>)</th>
+		<th colspan="5">Area (km<sup>2</sup>)</th>
+		<th rowspan="2" colspan="2" title="Structures and Functions">Struct. &amp; <br /> funct.</th>
+		<th rowspan="2" colspan="2" title="Future prospects">Future <br /> prosp.</th>
+		<th rowspan="2" colspan="2" title="Overall assessment">Overall <br /> asses.</th>
+		<th colspan="4" title="The area was computed in km2 by degrading the spatial data to 10x10 or equivalent grid cells in order to homogenise the data across Europe">Grided maps (km<sup>2</sup>)</th>
+		<th colspan="3">Quality</th>
+	</tr>
+	<tr>
+		<!-- Range -->
+		<th>Surface</th>
+		<th colspan="2" title="Percentage of surface of the Range per MS">%XR</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<!-- Coverage -->
+		<th>Surface</th>
+		<th colspan="2" title="Percentage of surface of the area of the habitat per MS">%XA</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+
+		<!-- Grids spatial data -->
+		<th>Range</th>
+		<th title="Percentage of the surface of the Range Map, which has been gridded, per MS">%GR</th>
+		<th title="Distribution">Distrib.</th>
+		<th title="Percentage of the surface of the Distribution Map, which has been gridded, per MS">%GD</th>
+
+		<!-- Quality -->
+		<th>Range</th>
+		<th>Area</th>
+	</tr>
+</thead>
+<tbody id="ms_data">
+	<tal:block repeat="record habitats">
+	<tal:block condition="python:(record['eu_country_code'] in rcountries) and not (auth_roles['expert'] or auth_roles['administrator'])">
+		<tr>
+			<metal:block use-macro="here/template_MS/macros/content" />
+			<metal:block use-macro="here/template_bioregion/macros/content" />
+			<td tal:attributes="colspan python:test(region, 28, 29)"><span tal:replace="record/eu_country_code" /> has provided a report to the European Commission under Article 17</td>
+		</tr>
+	</tal:block>
+	<tal:block condition="python:(record['eu_country_code'] not in rcountries) or auth_roles['expert'] or auth_roles['administrator']">
+	<tr tal:define="cond python:record['habitattype_type_asses']==0;
+			qa_errors python:here.sql_methods.lookup_qa_errors(habitatcode=habitat, region=record['region'], eu_country_code=record['eu_country_code'])"
+		tal:attributes="class python:test(cond, 'assesm', ''); title python:test(cond, record['habitattype_type'], '')">
+		<metal:block use-macro="here/template_MS/macros/content" />
+		<metal:block use-macro="here/template_bioregion/macros/content" />
+		<metal:block use-macro="here/template_range/macros/content" />
+		<metal:block use-macro="here/template_coverage/macros/content" />
+		<metal:block use-macro="here/template_structure/macros/content" />
+		<metal:block use-macro="here/template_future_prospects/macros/content" />
+		<metal:block use-macro="here/template_overall_assesment/macros/content" />
+		<metal:block use-macro="here/template_grids_spatial/macros/content" />
+		<metal:block use-macro="here/template_quality/macros/content" />
+	</tr>
+	</tal:block>
+	</tal:block>
+	<tal:block define="habitats python:here.sql_methods.select_habitat_automatic_assesment(habitatcode=habitat, region=region)">
+	<tr class="section-header">
+		<td tal:attributes="colspan python:test(region, 25, 26)">
+			<strong>Automatic assessments</strong>
+			<input name="show-assessm" type="button" onclick="onShowAssessment();" value="show/hide" style="width:7em" />
+		</td>
+	</tr>
+	<tal:block define="user_prefs python:here.getUserPrefs(user=auth_user)" repeat="record habitats">
+	<tr tal:attributes="id string:ass${repeat/record/index}; style python:test(user_prefs, '', 'display:none;;')">
+		<metal:block use-macro="here/template_MS/macros/total" />
+		<metal:block use-macro="here/template_bioregion/macros/total" />
+		<metal:block use-macro="here/template_range/macros/total" />
+		<metal:block use-macro="here/template_coverage/macros/total" />
+		<metal:block use-macro="here/template_structure/macros/total" />
+		<metal:block use-macro="here/template_future_prospects/macros/total" />
+		<metal:block use-macro="here/template_overall_assesment/macros/total" />
+		<metal:block use-macro="here/template_grids_spatial/macros/total" />
+		<td class="empty-cell" colspan="2"></td>
+	</tr>
+	</tal:block>
+
+	<!-- Add/Edit conclusion -->
+	<tal:block condition="region">
+		<tal:block condition="here/acl_manager/has_sta_role">
+			<metal:block use-macro="here/template_add_sta_conclusion/macros/conclusion" />
+			<metal:block use-macro="here/template_edit_sta_conclusion/macros/conclusion" />
+		</tal:block>
+		<tal:block condition="not:here/acl_manager/has_sta_role">
+			<metal:block use-macro="here/template_add_conclusion/macros/conclusion" />
+			<metal:block use-macro="here/template_edit_conclusion/macros/conclusion" />
+			<metal:block use-macro="here/template_editref_conclusion/macros/conclusion" />
+		</tal:block>
+	</tal:block>
+	</tal:block>
+</tbody>
+<tal:block define="conclusions python:here.sql_methods.select_habitat_manual_assessment(habitatcode=habitat, region=region);
+		view_conclusions python:here.view_conclusions(conclusions, auth_roles)">
+<tfoot tal:condition="python:len(conclusions)">
+	<tr class="section-header">
+		<td tal:attributes="colspan python:test(region, 26, 27)">ETC/BD biogeographical assessment & users proposed corrections</td>
+	</tr>
+	<tr>
+		<th><span tal:condition="here/acl_manager/checkPermissionViewDecision">Decision</span></th>
+		<th tal:condition="not:region">Bio</th>
+		<th>Surface</th>
+		<th colspan="2">Range <br />Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+		<th>Surface</th>
+		<th colspan="2">Area <br />Concl.</th>
+		<th>Trend</th>
+		<!-- <th>YMag.</th> -->
+		<th title="Favourable reference value">Ref.</th>
+		<th colspan="2" title="Structures and Functions">Struct.<br />func.</th>
+		<th colspan="2" title="Future prospects">Future<br /> prosp.</th>
+		<th colspan="2" title="Overall assessment">Overall<br /> asses.</th>
+		<th tal:condition="python:auth_user != 'Anonymous User'">&nbsp;</th>
+		<th>&nbsp;</th>
+		<th>Comments</th>
+		<th>Date</th>
+		<th>Name & Institution</th>
+		<th>MS</th>
+	</tr>
+	<tal:block repeat="record conclusions">
+	<tr tal:attributes="id string:${habitat}###${region}###${record/user}###${record/MS}; 
+				class python:here.generate_conclusion_bgcolor(record['decision'], record['deleted_record'])"
+		tal:condition="python:(record['region'], record['habitatcode'], record['user'], record['MS']) in view_conclusions">
+		<metal:block use-macro="here/template_decision/macros/conclusions" />
+		<metal:block use-macro="here/template_bioregion/macros/conclusions" />
+		<metal:block use-macro="here/template_range/macros/conclusions" />
+		<metal:block use-macro="here/template_coverage/macros/conclusions" />
+		<metal:block use-macro="here/template_structure/macros/conclusions" />
+		<metal:block use-macro="here/template_future_prospects/macros/conclusions" />
+		<metal:block use-macro="here/template_overall_assesment/macros/conclusions" />
+		<metal:block use-macro="here/template_conclusion_details/macros/conclusions" />
+	</tr>
+	</tal:block>
+</tfoot>
+</tal:block>
+</table>
+<p tal:condition="not:habitats">There was no data matching your selection.</p>
+
+</tal:block>
+</tal:block>
+
+</tal:block>
+
+<script language="javascript" type="text/javascript">
+<!--
+	window.onload = function () {
+		tooltip.init ();
+		handlerOnLoad ();
+}
+// -->
+</script>
+<span tal:replace="structure here/standard_html_footer" />
