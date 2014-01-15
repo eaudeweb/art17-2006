@@ -1,0 +1,14 @@
+# Page Template
+# /article17/speciessummary/template_bioregion
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+	<td class="center" tal:condition="not:region" tal:content="record/region | default">N/A</td>
+</metal:block>
+
+<metal:block define-macro="total">
+	<td class="center" tal:condition="not:region" tal:content="record/region | default">N/A</td>
+</metal:block>
+
+<metal:block define-macro="conclusions">
+	<td class="center" tal:condition="not:region" tal:content="record/region | default">N/A</td>
+</metal:block>

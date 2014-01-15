@@ -1,0 +1,2 @@
+-- External Method
+-- /article17/speciessummary/details/get_coordinates_noreg

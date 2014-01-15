@@ -1,0 +1,59 @@
+# Page Template
+# /article17/speciessummary/template_population
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+	<td colspan="2" tal:define="attrs python:here.attrs_content.td_population_size_unit(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td colspan="2" tal:define="attrs python:here.attrs_content.td_population_conclusion(record, conclusions_dict, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_population_trend(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<!-- <td tal:define="attrs python:here.attrs_content.td_population_yearly_magnitude(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" /> -->
+
+	<td tal:define="attrs python:here.attrs_content.td_population_complementary_favourable(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+</metal:block>
+
+<metal:block define-macro="total">
+
+	<td colspan="2" tal:define="attrs python:here.attrs_total.td_population_size_unit(record)" 
+		tal:attributes="class attrs/class" tal:content="structure attrs/content" />
+
+	<td colspan="2" tal:define="attrs python:here.attrs_total.td_population_conclusion(record, conclusions_dict)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="structure attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_total.td_population_trend(record)" 
+		tal:attributes="class attrs/class" tal:content="structure attrs/content" />
+
+	<!-- <td tal:define="attrs python:here.attrs_total.td_population_yearly_magnitude(record)" 
+		tal:attributes="class attrs/class" tal:content="structure attrs/content" /> -->
+
+	<td tal:define="attrs python:here.attrs_total.td_population_complementary_favourable(record)" 
+		tal:attributes="class attrs/class" tal:content="structure attrs/content" />
+
+</metal:block>
+
+
+<metal:block define-macro="conclusions">
+
+	<td colspan="2" tal:define="attrs python:here.attrs_conclusion.td_population_size_unit(record)" 
+		tal:attributes="class attrs/class" tal:content="attrs/content" />
+
+	<td colspan="2" tal:define="attrs python:here.attrs_conclusion.td_population_conclusion(assesment_speciesname, region, record, conclusions_dict)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_conclusion.td_population_trend(record)" 
+		tal:attributes="class attrs/class" tal:content="attrs/content" />
+
+	<!-- <td tal:define="attrs python:here.attrs_conclusion.td_population_yearly_magnitude(record)" 
+		tal:attributes="class attrs/class" tal:content="attrs/content" /> -->
+
+	<td tal:define="attrs python:here.attrs_conclusion.td_population_complementary_favourable(record)" 
+		tal:attributes="class attrs/class" tal:content="attrs/content" />
+
+</metal:block>

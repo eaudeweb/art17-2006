@@ -1,0 +1,22 @@
+# Page Template
+# /article17/speciessummary/template_decision
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="conclusions">
+	<tal:block define="decisions here/sql_methods/lookup_decision;
+			user_roles python:here.acl_manager.getSpecificUserRoles(auth_user)">
+		<td tal:attributes="title python:here.attrs_conclusion.td_decision_title(record, auth_user);
+				class python:test(record['deleted_record'], 'center section-border', 'center section-border');">
+			<select tal:define="conclusion_id string:${species}###${region}###${record/user};"
+				tal:attributes="id string:decision###${conclusion_id};
+						decision string:decision###${conclusion_id};
+						onchange string:javascript:changeDecision('${conclusion_id}', '${record/decision}');" 
+				class="large-select"
+				tal:condition="python:here.acl_manager.checkPermissionViewDecision() and (user_roles['expert'] or user_roles['administrator'])">
+				<option tal:repeat="item decisions" 
+					tal:content="item/decision" 
+					tal:attributes="value item/decision; selected python:item['decision'] == record['decision']" />
+			</select>
+			<span tal:replace="record/decision" tal:condition="python:here.acl_manager.checkPermissionViewDecision() and (not user_roles['expert'] and not user_roles['administrator'])" />
+		</td>
+	</tal:block>
+</metal:block>
