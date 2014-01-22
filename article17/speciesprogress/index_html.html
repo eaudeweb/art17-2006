@@ -1,0 +1,189 @@
+# Page Template
+# /article17/speciesprogress/index_html
+<span tal:replace="structure here/standard_html_header" />
+
+<style>
+.valid {
+	border: 3px solid #168BD9;
+}
+
+.valid_cell {
+	margin:0 !important;
+	padding:0 !important;
+}
+.datatable th {
+	vertical-align: middle !important;
+}
+</style>
+
+<script type="text/javascript" tal:attributes="src string:${here/aq_parent/absolute_url}/javascripts/qTip.js"></script>
+
+<noscript>
+<div class="important-msg">
+	<strong>WARNING:</strong> JavaScript is either disabled or not installed. In order to use this application please enable or install it.
+</div>
+</noscript>
+
+<tal:block define="group python:request.get('group', '');
+		conclusion python:request.get('conclusion', '');
+		regions here/sql_methods/select_regions;
+		conclusions here/sql_methods/lookup_conclusions;
+		conclusion_types here/sql_methods/select_conclusions;
+		auth_user python:request.AUTHENTICATED_USER.getUserName();
+		conclusions_dict python:here.gen_dict(conclusions, 'conclusion', 'details');
+		comments python:here.process_comments(auth_user);
+		countries here/process_countries;
+		user_comments python:here.process_user_comments(auth_user);
+		wiki_comments python:here.process_wiki_comments(auth_user);
+		trail_comments python:here.process_trail_comments(auth_user)">
+
+<p>Choose a group, a conclusion type and press the <em>Filter</em> button. You will get an overview of the assessment for the species in that group over the various bioregions. Move the mouse
+over each cell in order to get more details about that assessment. Clicking on each cell will lead you to the full detailed page of that species in the chosen region.</p>
+
+<form name="filter_form" id="filter_form" action="." method="get">
+	<fieldset>
+		<legend>Group&hellip;</legend>
+		<select name="group" id="group">
+			<tal:block repeat="item here/sql_methods/select_groups">
+			<option tal:attributes="value python:here.string_encode(item['upper_group']); selected python:here.string_encode(item['upper_group']) == group"
+				tal:content="item/upper_group" />
+			</tal:block>
+		</select>*
+	</fieldset>
+	<fieldset>
+		<legend>Conclusion&hellip;</legend>
+		<select name="conclusion" id="conclusion">
+			<tal:block repeat="item conclusion_types">
+			<option tal:attributes="value item/code; selected python:item['code'] == conclusion"
+				tal:content="item/name" tal:condition="conclusion" />
+			<option tal:attributes="value item/code; selected python:item['selected']"
+				tal:content="item/name" tal:condition="not:conclusion" />
+			</tal:block>
+		</select>*
+	</fieldset>
+	<fieldset>
+		<input type="submit" id="filter-submit" name="filter-submit" value="Filter" onclick="this.disabled=true,this.form.submit();" />
+	</fieldset>
+</form>
+
+
+<tal:block condition="python:not(group and conclusion)">
+	<strong>Please select a group and a conclusion.</strong>
+</tal:block>
+
+<tal:block condition="python:group and conclusion">
+<table class="datatable" tal:define="records python:here.process_conclusions(conclusion, here.string_decode(group)); keys records/keys; dummy keys/sort;">
+<col/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<col style="width: 6em;"/>
+<thead>
+	<tr>
+		<th class="scope-col" rowspan="2" scope="col">Species</th>
+		<th class="scope-col" colspan="11" scope="col">Regions</th>
+	</tr>
+	<tr>
+		<tal:block repeat="region regions">
+			<th tal:content="region/reg_code" tal:attributes="title region/reg_name" />
+		</tal:block>
+	</tr>
+</thead>
+<tal:block condition="python:here.acl_manager.has_etc_role() or here.acl_manager.has_adm_role()">
+<tbody>
+	<tr tal:repeat="key keys">
+		<th class="scope-row" scope="row" tal:content="structure python:here.shrink_species(key)" />
+		
+		<tal:block repeat="region regions">
+		<tal:block define="reg_code region/reg_code;
+				data python:records[key][reg_code]">
+			<tal:block condition="data">
+			<td tal:define="attrs python:here.generate_bgcolour(data, 'center', conclusions_dict, conclusion, comments, wiki_comments, trail_comments, user_comments, countries, conclusion_types);
+					href string:${here/aq_parent/absolute_url}/speciessummary/?group=${data/group}&amp;species=${data/species}&amp;region=${data/region}" 
+				tal:attributes="class attrs/class; title attrs/title;
+						onclick string:window.open('${href}');" style="cursor:pointer;">
+				<div tal:attributes="class python:test(data['main_decision'] == 'OK', 'valid', '')">
+				<strong tal:content="data/main_decision" tal:condition="python:data['user']==auth_user" />
+				<span tal:replace="data/main_decision" tal:condition="python:data['user']!=auth_user" />
+				<tal:block tal:repeat="od data/other_decisions" condition="data/other_decisions">
+					<span tal:replace="od" />&nbsp;
+				</tal:block>
+				<span tal:replace="data/method" tal:condition="python:not data['method'].startswith('0')" />
+				<tal:block tal:condition="python:data['method'].startswith('0')">
+					M<span tal:replace="data/method" />
+				</tal:block>
+				<br />
+				<!-- user comments -->
+				<tal:block define="comm python:user_comments.get(key, '')" omit-tag="">
+					<tal:block condition="comm" replace="python:comm.get(reg_code, 0)" omit-tag="" />
+					<tal:block condition="not:comm" replace="string:0" omit-tag="" />
+				</tal:block>
+				<!-- comments -->
+				<tal:block define="comm python:comments.get(key, '')" omit-tag="">
+					<tal:block condition="comm" replace="python:comm.get(reg_code, 0)" omit-tag="" />
+					<tal:block condition="not:comm" replace="string:0" omit-tag="" />
+				</tal:block>
+				<!-- wiki comments -->
+				<tal:block define="comm python:wiki_comments.get(key, '')" omit-tag="">
+					<tal:block condition="comm" replace="python:comm.get(reg_code, 0)" omit-tag="" />
+					<tal:block condition="not:comm" replace="string:0" omit-tag="" />
+				</tal:block>
+				<!--
+				<tal:block define="comm python:trail_comments.get(key, '')">/
+					<span tal:condition="comm" tal:replace="python:comm.get(reg_code, 0)" />
+					<tal:block condition="not:comm">0</tal:block>
+				</tal:block>
+				-->
+				</div>
+			</td>
+			</tal:block>
+			<td class="scope-row" scope="row" tal:condition="not:data" />
+		</tal:block>
+		</tal:block>
+	</tr>
+</tbody>
+</tal:block>
+<tal:block condition="python:not(here.acl_manager.has_etc_role() or here.acl_manager.has_adm_role())">
+<tbody>
+	<tr tal:repeat="key keys">
+		<th class="scope-row" scope="row" tal:content="structure python:here.shrink_species(key)" />
+		
+		<tal:block repeat="region regions">
+		<tal:block define="reg_code region/reg_code;
+				data python:records[key][reg_code]">
+			<tal:block condition="data">
+			<td tal:define="attrs python:here.generate_bgcolour(data, 'center', conclusions_dict, conclusion, comments, wiki_comments, trail_comments, user_comments, countries, conclusion_types);
+					href string:${here/aq_parent/absolute_url}/speciessummary/?group=${data/group}&amp;species=${data/species}&amp;region=${data/region}" 
+				tal:attributes="class attrs/class; title attrs/title;
+						onclick string:window.open('${href}');" style="cursor:pointer;">
+				<span tal:replace="data/method" tal:condition="python:not data['method'].startswith('0')" />
+				<tal:block tal:condition="python:data['method'].startswith('0')">
+					M<span tal:replace="data/method" />
+				</tal:block>
+			</td>
+			</tal:block>
+			<td class="scope-row" scope="row" tal:condition="not:data" />
+		</tal:block>
+		</tal:block>
+	</tr>
+</tbody>
+</tal:block>
+</table>
+</tal:block>
+
+</tal:block>
+<script language="javascript" type="text/javascript">
+<!--
+	window.onload = function () {
+		tooltip.init ();
+}
+// -->
+</script>
+<span tal:replace="structure here/standard_html_footer" />
