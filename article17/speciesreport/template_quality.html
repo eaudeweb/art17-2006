@@ -1,0 +1,15 @@
+# Page Template
+# /article17/speciesreport/template_quality
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+
+	<td tal:define="attrs python:here.attrs_content.td_quality_range(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_quality_population(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_quality_habitat(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+</metal:block>

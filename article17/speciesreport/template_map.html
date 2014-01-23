@@ -1,0 +1,10 @@
+# Page Template
+# /article17/speciesreport/template_map
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+	<td class="center section-border">
+		<a tal:define="encode_species python:here.string_encode(record['assesment_speciesname']);
+				summary_url string:${parent_url}/speciessummary/details/eu_details_html?species=${encode_species}&amp;region=${record/region}"
+			tal:attributes="href string:javascript:openMapPage('${summary_url}', 'Map'); title string:Article 17 Experts Consultation: ${record/assesment_speciesname} map">map</a>
+	</td>
+</metal:block>

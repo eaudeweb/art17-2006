@@ -1,0 +1,176 @@
+# Page Template
+# /article17/habitatsreport/index_html
+<span tal:replace="structure here/standard_html_header" />
+<noscript>
+<div class="important-msg">
+	<strong>WARNING:</strong> JavaScript is either disabled or not installed. In order to use this application please enable or install it.
+</div>
+</noscript>
+
+<tal:block define="group python:request.get('group', '');
+		country python:request.get('country', '');
+		region python:request.get('region', '');
+		parent_url here/aq_parent/absolute_url;
+		conclusions here/sql_methods/lookup_conclusions;
+		conclusions_dict python:here.gen_dict(conclusions, 'conclusion', 'details');
+		auth_user python:request.AUTHENTICATED_USER.getUserName();
+		auth_roles python:here.acl_manager.getSpecificUserRoles(auth_user);
+		rhabitats here/sql_methods/get_restricted_habitats;
+		rdata python:here.convertCursorToDict(rhabitats, 'habitatcode')">
+
+
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/qTip.js"></script>
+<script type="text/javascript" tal:attributes="src string:${parent_url}/javascripts/remote.js"></script>
+
+<p>Choose a group and then a country. Optionally, further refine your query by selecting one of the available biogeographical regions for that country. <br />
+<strong>NOTE:</strong> Texts in blue shows relevant information on mouse over and rows in italic shows data not taken into account when performing the assessments (marginal presence, occasional, extinct prior HD, information, etc)</p>
+
+<form name="filterform" id="filterform" action="." method="get">
+	<fieldset><legend>Group&hellip;</legend>
+		<select name="group" id="group">
+			<tal:block repeat="record here/getGroups">
+			<option tal:attributes="value python:here.string_encode(record); selected python:here.string_encode(record) == group"
+				tal:content="record" />
+			</tal:block>
+		</select>*
+	</fieldset>
+
+
+	<fieldset><legend>Country&hellip;</legend>
+		<select name="country" id="country" onChange="javascript:changeCountry();">
+			<option value="">All MS</option>
+			<tal:block repeat="record here/sql_methods/select_countries">
+			<option tal:attributes="value record/code; selected python:record['code'] == country;" tal:content="record/name" />
+			</tal:block>
+		</select>*
+	</fieldset>
+
+	<fieldset><legend>Bio-region&hellip;</legend>
+		<select name="region" id="region">
+			<option value="">&nbsp;</option>
+		</select>
+	</fieldset>
+
+	<fieldset>
+		<input type="submit" id="filter-submit" name="filter-submit" value="Filter" onclick="this.disabled=true,this.form.submit();" />
+	</fieldset>
+</form>
+
+<tal:block condition="not:group">
+<strong>Please select a group.</strong>
+</tal:block>
+
+<tal:block define="records python:here.sql_methods.lookup_country_habitats(group=here.string_decode(group), country=country, region=region)" condition="group">
+
+<p>
+	<strong>Current selection:</strong>
+	<span tal:replace="python:here.string_decode(group)" />, 
+	<span tal:define="country_name python:here.sql_methods.lookup_country_name(code=country)" tal:replace="python:country_name[0]['name']" tal:condition="country" />
+	<span tal:condition="not:country">All Member States</span>, 
+	<span tal:replace="python:here.sql_methods.lookup_bioregion().get(region,'All biogeo zones')" />.
+</p>
+
+<table class="datatable" tal:condition="records" id="table_conclusions">
+	<thead>
+		<tr class="section-header">
+			<td tal:attributes="colspan python:test(region, 25, 26)">
+				<span class="actions">Texts in blue shows relevant information on mouse over</span>
+				<strong>ETC/BD treated member states' data</strong>
+			</td>
+		</tr>
+		<tr>
+			<th rowspan="2">Habitat</th>
+			<th rowspan="2">&nbsp;</th>
+			<th rowspan="2" tal:condition="not:region">Bio</th>
+			<th rowspan="2" tal:condition="not:country">Country</th>
+			<th colspan="5">Range (km<sup>2</sup>)</th>
+			<th colspan="5">Area (km<sup>2</sup>)</th>
+			<th rowspan="2" colspan="2" title="Structures and Functions">Struct. &amp; <br /> funct.</th>
+			<th rowspan="2" colspan="2" title="Future prospects">Future <br /> prosp.</th>
+			<th rowspan="2" colspan="2" title="Overall assessment">Overall <br /> asses.</th>
+			<th colspan="4" title="The area was computed in km2 by degrading the spatial data to 10x10 or equivalent grid cells in order to homogenise the data across Europe">Grided maps (km<sup>2</sup>)</th>
+			<th colspan="3">Quality</th>
+		</tr>
+		<tr>
+			<th>Surface</th><!-- Range -->
+			<th colspan="2" title="Percentage of surface of the Range per MS">%XR</th>
+			<th>Trend</th>
+			<th title="Favourable reference value">Ref.</th>
+			<th>Surface</th><!-- Coverage -->
+			<th colspan="2" title="Percentage of surface of the area of the habitat per MS">%XA</th>
+			<th>Trend</th>
+			<th title="Favourable reference value">Ref.</th><!-- <th>YMag.</th> -->
+			<th>Range</th><!-- Grids spatial data -->
+			<th title="Percentage of the surface of the Range Map, which has been gridded, per MS">%GR</th>
+			<th title="Distribution">Distrib.</th>
+			<th title="Percentage of the surface of the Distribution Map, which has been gridded, per MS">%GD</th>
+			<th>Range</th><!-- Quality -->
+			<th>Coverage</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tal:block repeat="record records">
+		<tal:block define="skey python:'%s_%s' % (record['habitatcode'].lower(), record['eu_country_code'])"
+			condition="python:(skey in rdata.keys()) 
+						and not (auth_roles['expert'] or auth_roles['administrator'])">
+			<tal:block condition="python:rdata[skey]">
+			<tr tal:define="cond python:record['habitattype_type_asses']==0;
+					qa_errors python:here.sql_methods.lookup_qa_errors(habitatcode=record['habitatcode'], region=record['region'], eu_country_code=country)"
+				tal:attributes="class python:test(cond, 'assesm', ''); title python:test(cond, record['habitattype_type'], '')">
+				<metal:block use-macro="here/template_habitat/macros/content" />
+				<metal:block use-macro="here/template_map/macros/content" />
+				<metal:block use-macro="here/template_bioregion/macros/content" />
+				<metal:block use-macro="here/template_range/macros/content" />
+				<metal:block use-macro="here/template_coverage/macros/content" />
+				<metal:block use-macro="here/template_structure/macros/content" />
+				<metal:block use-macro="here/template_future_prospects/macros/content" />
+				<metal:block use-macro="here/template_overall_assesment/macros/content" />
+				<metal:block use-macro="here/template_grids_spatial/macros/content" />
+				<metal:block use-macro="here/template_quality/macros/content" />
+			</tr>
+			</tal:block>
+			<tal:block condition="python:not rdata[skey]">
+			<tr>
+				<metal:block use-macro="here/template_habitat/macros/content" />
+				<td colspan="29">
+					<span tal:replace="record/eu_country_code" /> has provided a report to the European Commission under Article 17
+				</td>
+			</tr>
+			</tal:block>
+		</tal:block>
+
+		<tal:block define="skey python:'%s_%s' % (record['habitatcode'].lower(), record['eu_country_code'])"
+			condition="python:(skey not in rdata.keys()) 
+					or auth_roles['expert'] or auth_roles['administrator']">
+		<tr tal:define="cond python:record['habitattype_type_asses']==0;
+				qa_errors python:here.sql_methods.lookup_qa_errors(habitatcode=record['habitatcode'], region=record['region'], eu_country_code=country)"
+			tal:attributes="class python:test(cond, 'assesm', ''); title python:test(cond, record['habitattype_type'], '')">
+			<metal:block use-macro="here/template_habitat/macros/content" />
+			<metal:block use-macro="here/template_map/macros/content" />
+			<metal:block use-macro="here/template_bioregion/macros/content" />
+			<metal:block use-macro="here/template_range/macros/content" />
+			<metal:block use-macro="here/template_coverage/macros/content" />
+			<metal:block use-macro="here/template_structure/macros/content" />
+			<metal:block use-macro="here/template_future_prospects/macros/content" />
+			<metal:block use-macro="here/template_overall_assesment/macros/content" />
+			<metal:block use-macro="here/template_grids_spatial/macros/content" />
+			<metal:block use-macro="here/template_quality/macros/content" />
+		</tr>
+		</tal:block>
+		</tal:block>
+	</tbody>
+</table>
+<br style="line-height: 10em;" />
+<p tal:condition="not:records">There was no data matching your selection.</p>
+</tal:block>
+
+</tal:block>
+<script language="javascript" type="text/javascript">
+<!--
+	window.onload = function () {
+		tooltip.init ();
+		changeCountry ();
+}
+// -->
+</script>
+<span tal:replace="structure here/standard_html_footer" />

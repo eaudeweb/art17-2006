@@ -1,0 +1,18 @@
+# Page Template
+# /article17/speciesreport/template_range
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+
+	<td tal:define="attrs python:here.attrs_content.td_range_surface(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td colspan="2" tal:define="attrs python:here.attrs_content.td_range_conclusion(record, conclusions_dict, qa_errors)"
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_range_trend(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_range_complementary_favourable(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+</metal:block>

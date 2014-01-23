@@ -1,0 +1,18 @@
+# Page Template
+# /article17/habitatsreport/template_coverage
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+
+	<td tal:define="attrs python:here.attrs_content.td_coverage_surface(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td colspan="2" tal:define="attrs python:here.attrs_content.td_coverage_conclusion(record, conclusions_dict, qa_errors)"
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_coverage_trend(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_coverage_complementary_favourable(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+</metal:block>

@@ -1,0 +1,9 @@
+# Page Template
+# /article17/habitatsreport/template_map
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+	<td class="center section-border">
+		<a tal:define="map_url string:${parent_url}/habitatsummary/details/eu_details_html?habitat=${record/habitatcode}&amp;region=${record/region}"
+			tal:attributes="href string:javascript:openMapPage('${map_url}', 'Map'); title string:Article 17 Experts Consultation: ${record/habitatcode} map">map</a>
+	</td>
+</metal:block>

@@ -1,0 +1,13 @@
+# Page Template
+# /article17/habitatsreport/template_habitat
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+	<tal:block define="habitat record/habitatcode;
+			envelope record/envelope;
+			filename record/filename;
+			url_pieces python:here.parse_envelope_url(envelope);
+			envelope_url python:'%s://%s/Converters/run_conversion?file=%s/%s&conv=23&source=remote#%s' % (url_pieces[0], url_pieces[1], url_pieces[2], filename, region)">
+	<td tal:define="attrs python:here.attrs_content.td_habitat(record)" style="text-decoration:underline;cursor: pointer;"
+		tal:attributes="class attrs/class; title attrs/title; onclick string:openCDRPage('${envelope_url}')" tal:content="structure attrs/content" />
+	</tal:block>
+</metal:block>

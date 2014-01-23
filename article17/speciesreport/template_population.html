@@ -1,0 +1,17 @@
+# Page Template
+# /article17/speciesreport/template_population
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+	<td colspan="2" tal:define="attrs python:here.attrs_content.td_population_size_unit(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td colspan="2" tal:define="attrs python:here.attrs_content.td_population_conclusion(record, conclusions_dict, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_population_trend(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+	<td tal:define="attrs python:here.attrs_content.td_population_complementary_favourable(record, qa_errors)" 
+		tal:attributes="class attrs/class; title attrs/title" tal:content="attrs/content" />
+
+</metal:block>

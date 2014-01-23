@@ -1,0 +1,7 @@
+# Page Template
+# /article17/speciesreport/template_bioregion
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="content">
+	<td class="center" tal:condition="not:region" tal:content="record/region | default">N/A</td>
+	<td class="center" tal:condition="not:country" tal:content="record/eu_country_code | default">N/A</td>
+</metal:block>
