@@ -1,0 +1,57 @@
+# Page Template
+# /article17/wiki/changes_html
+<span tal:replace="python:request.RESPONSE.setHeader('content-type', 'text/html;charset=utf-8')" />
+<html>
+<head>
+	<title tal:content="template/title">Wiki changes</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+</head>
+<body>
+	<style>
+	.wiki_footer {
+		font-size:12px;
+		font-size-adjust:none;
+		font-stretch:normal;
+		font-style:normal;
+		font-variant:normal;
+		font-weight:normal;
+		line-height:1.45;
+		margin-top:4em;
+	}
+	</style>
+
+<tal:block define="id python:request.get('id', 'CON');
+		auth_user python:request.AUTHENTICATED_USER.getUserName();
+		wiki_changes python:here.sql_methods.select_wiki_changes(id=id);
+		region python:request.get('region', '');
+		habitat python:request.get('habitat', '');
+		species python:request.get('species', '');">
+
+	<h3>Page history</h3>
+	<form method="post" action="activate_wiki_changes" name="wiki-active-form" id="wiki-active-form">
+	<ul>
+		<li tal:repeat="wiki_change wiki_changes">
+			<input type="radio" name="wiki-active" id="wiki-active" tal:attributes="value wiki_change/id; checked wiki_change/active" />
+			<span tal:content="wiki_change/changed" /> by <span tal:replace="python:here.acl_manager.getUserFullName(wiki_change['editor'])" /> <strong tal:condition="wiki_change/active">(active)</strong>
+		</li>
+	</ul>
+	<input type="hidden" name="wiki_id" id="wiki-id-button" tal:attributes="value id" />
+	<input type="hidden" name="species" tal:attributes="value species" />
+	<input type="hidden" name="region" tal:attributes="value region"/>
+	<input type="hidden" name="habitat" tal:attributes="value habitat" />
+	<input type="submit" name="wiki-active-button" id="wiki-active-button" value="Make active" />
+	<input type="hidden" name="referer" tal:attributes="value here/aq_parent/absolute_url" />
+	</form>
+
+	<div class="wiki_footer">
+		<hr />
+		<a tal:attributes="href string:${here/aq_parent/absolute_url}/wiki?region=${region}&amp;species=${species}&amp;habitat=${habitat}">Home</a> | 
+		<a tal:condition="here/acl_manager/checkPermissionEditWiki" 
+			tal:attributes="href string:${here/aq_parent/absolute_url}/wiki?region=${region}&amp;species=${species}&amp;habitat=${habitat}&amp;action=wiki#wiki-edit">Edit page</a> | 
+		<a tal:condition="here/acl_manager/checkPermissionAddWikiComments" 
+			tal:attributes="href string:${here/aq_parent/absolute_url}/wiki?region=${region}&amp;species=${species}&amp;habitat=${habitat}&amp;action=add#add-comment">Add comment</a> | 
+	</div>
+
+</tal:block>
+</body>
+</html>

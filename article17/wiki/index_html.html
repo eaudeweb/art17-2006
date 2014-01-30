@@ -1,0 +1,69 @@
+# Page Template
+# /article17/wiki/index_html
+<span tal:replace="python:request.RESPONSE.setHeader('content-type', 'text/html;charset=utf-8')" />
+<html>
+<head>
+	<title tal:content="template/title">Wiki</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+	<script type="text/javascript" tal:attributes="src string:${here/absolute_url}/javascripts/common.js"></script>
+	<script type="text/javascript" tal:attributes="src string:${here/aq_parent/absolute_url}/javascripts/remote.js"></script>
+	<link rel="stylesheet" type="text/css" tal:attributes="href string:${here/absolute_url}/local_stylesheet" media="screen" />
+</head>
+<body>
+<noscript>
+<div class="important-msg">
+	<strong>WARNING:</strong> JavaScript is either disabled or not installed. In order to use this application please enable or install it.
+</div>
+</noscript>
+
+<tal:block define="action python:request.get('action', '');
+		region python:request.get('region', '');
+		habitat python:request.get('habitat', '');
+		species python:request.get('species', '');
+		comment_id python:request.get('idcomm', '');
+		auth_user python:request.AUTHENTICATED_USER.getUserName();
+		wiki python:here.sql_methods.select_active_wiki(region=region, assesment_speciesname=here.string_decode(species), habitat=habitat);">
+
+<span tal:replace="structure here/TinyMCE/advanced.conf/render" />
+<h1>Data Sheet Info</h1>
+	<div class="wiki_text" tal:condition="wiki" tal:content="structure python:wiki[0]['body']" />
+
+	<form method="post" action="edit_wiki" name="wiki-edit-form" id="wiki-edit-form" tal:condition="python:action=='wiki' and here.acl_manager.checkPermissionEditWiki()">
+		<fieldset id="wiki-edit">
+		<legend>Edit page</legend>
+			<p><label for="body">Content:</label>
+			<br />
+			<textarea id="body" name="body" cols="50" rows="10" tal:condition="not:wiki"></textarea>
+			<textarea id="body" name="body" cols="50" rows="10" tal:condition="wiki" tal:content="python:wiki[0]['body']" />
+			<br />
+			<input type="hidden" name="species" tal:attributes="value species" />
+			<input type="hidden" name="region" tal:attributes="value region"/>
+			<input type="hidden" name="habitat" tal:attributes="value habitat" />
+			<input type="hidden" name="referer" tal:attributes="value here/aq_parent/absolute_url" />
+
+			<input type="submit" value="Save" id="wiki-edit-button" name="wiki-edit-button" />
+			</p>
+		</fieldset>
+	</form>
+
+	<tal:block condition="wiki">
+		<metal:block use-macro="here/template_comments/macros/comments" />
+	</tal:block>
+
+	<div class="wiki_footer">
+		<a tal:attributes="href string:${here/aq_parent/absolute_url}/wiki?action=wiki&amp;region=${region}&amp;species=${species}&amp;habitat=${habitat}#wiki-edit" 
+			tal:condition="here/acl_manager/checkPermissionEditWiki">Edit page</a>
+		<tal:block condition="wiki">
+			<tal:block condition="here/acl_manager/checkPermissionAddWikiComments">
+				 | <a tal:attributes="href string:${here/aq_parent/absolute_url}/wiki?region=${region}&amp;species=${species}&amp;habitat=${habitat}&amp;action=add#add-comment">Add comment</a> |
+			</tal:block>
+			<a tal:condition="here/acl_manager/checkPermissionManageWiki"
+				tal:define="id python:wiki[0]['id']" 
+				tal:attributes="href string:${here/aq_parent/absolute_url}/wiki/changes_html?id=${id}&amp;region=${region}&amp;species=${species}&amp;habitat=${habitat}" rel="nofollow">Page history</a>
+			<p>Page last modified on <span tal:replace="python:wiki[0]['changed']" /></p>
+		</tal:block>
+		
+	</div>
+</tal:block>
+</body>
+</html>

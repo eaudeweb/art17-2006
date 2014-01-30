@@ -1,0 +1,92 @@
+# Page Template
+# /article17/wiki/template_comments
+<tal:comment condition="nothing">You must define a record</tal:comment>
+<metal:block define-macro="comments">
+
+<tal:block define="wiki_id python:wiki[0]['id'];
+		comments python:here.sql_methods.select_wiki_comments(id=wiki_id);
+		read_comments python:here.get_read_comments(auth_user);
+		can_post_comm python:here.can_post_comments(comments, auth_user, action)">
+
+<tal:block condition="comments">
+
+<form name="comments-manage-form" id="comments-manage-form" method="post" action="manageComment">
+<div id="comments">
+	<p tal:condition="python:not here.acl_manager.has_ano_role()">
+		<strong>Comments:</strong>
+		<span style="color: rgb(224, 124, 34);">red border shows your comment</span>,
+		<span style="color: rgb(135, 179, 207);">blue borders shows the comments that have been read</span>,
+		<span style="color: rgb(135, 139, 142);">grey borders shows the comments that have been deleted</span>
+	</p>
+	<ol id="comments-list">
+		<tal:block repeat="comment comments">
+		<li tal:define="isOwner python:auth_user == comment['author']" 
+			tal:attributes="class python:here.generate_comment_bgcolor(isOwner, read_comments, comment['deleted'], comment['id']); id comment/id">
+
+			<span class="actions" tal:condition="python:auth_user != 'Anonymous User'">
+				&nbsp;<a tal:attributes="href string:javascript:markCommentReadStatus('${comment/id}', '${auth_user}');
+							id string:read${comment/id}; name string:read${comment/id};" 
+						tal:condition="python:comment['id'] not in read_comments">mark as read</a>
+				&nbsp;<a tal:attributes="href string:javascript:markCommentReadStatus('${comment/id}', '${auth_user}');
+							id string:read${comment/id}; name string:read${comment/id};" 
+						tal:condition="python:comment['id'] in read_comments">mark as unread</a>
+			</span>
+
+			<span class="actions" tal:condition="isOwner">
+				<a tal:attributes="id string:edit${comment/id};
+						href string:${here/aq_parent/absolute_url}/wiki?id=${wiki_id}&amp;idcomm=${comment/id}&amp;action=edit&amp;region=${region}&amp;species=${species}&amp;habitat=${habitat}#edit-comment;
+						style python:test(comment['deleted'], 'display:none', 'display:inline')">edit</a>&nbsp;
+				<a tal:attributes="id string:del${comment/id}; name string:del${comment/id};
+							href string:javascript:markCommentDeleteStatus('${comment/id}', '${auth_user}')" 
+					tal:condition="comment/deleted">undedelete</a>
+				<a tal:attributes="id string:del${comment/id}; name string:del${comment/id};
+							href string:javascript:markCommentDeleteStatus('${comment/id}', '${auth_user}')" 
+					tal:condition="not:comment/deleted">delete</a>
+			</span>
+			<dl>
+				<dt tal:define="user_name python:here.acl_manager.getUserFullName(comment['author'])">
+					<tal:block condition="user_name"><span tal:replace="user_name" /> - </tal:block>
+					<span tal:replace="python:here.acl_manager.getUserInstitution(comment['author'])" />:
+				</dt>
+				<dd tal:content="structure comment/comment" />
+				<dd class="comment-date">Posted on: <span tal:replace="comment/posted" /></dd>
+			</dl>
+
+		</li>
+		</tal:block>
+	</ol>
+</div>
+</form>
+
+</tal:block>
+
+<form method="post" action="manage_wiki_comments" tal:define="form_id string:comment-${action}-form" 
+						tal:attributes="name form_id; id form_id" 
+						tal:condition="python:can_post_comm and (auth_user != 'Anonymous User') and (action=='add' or action=='edit')">
+	<fieldset tal:attributes="id string:${action}-comment">
+	<legend tal:content="python:test(action=='edit', 'Edit comment', 'Add comment')" />
+		<p><label for="comment">Comment:</label>
+		<br/>
+		<textarea id="comment" name="comment" cols="50" rows="10" tal:condition="not:comment_id"></textarea>
+		<tal:block condition="comment_id">
+		<textarea id="comment" name="comment" cols="50" rows="10" 
+			tal:define="content python:here.sql_methods.lookup_wiki_comments(id=comment_id)"
+			tal:content="python:content[0]['comment']" />
+		</tal:block>
+		<br />
+		<input type="hidden" name="wiki_id" tal:attributes="value wiki_id" />
+		<input type="hidden" name="author" tal:attributes="value auth_user" />
+		<input type="hidden" name="comment_id" tal:attributes="value comment_id" tal:condition="python:action == 'edit'" />
+		<input type="hidden" name="species" tal:attributes="value species" />
+		<input type="hidden" name="region" tal:attributes="value region"/>
+		<input type="hidden" name="habitat" tal:attributes="value habitat" />
+		<input type="hidden" name="referer" tal:attributes="value here/aq_parent/absolute_url" />
+
+		<input type="submit" tal:define="submit_id python:test(action=='edit', 'edit_button', 'add_button')"
+					tal:attributes="id submit_id; name submit_id;" value="Submit" />
+		<a id="cancel" tal:condition="python:action == 'edit'"
+			tal:attributes="href string:${here/aq_parent/absolute_url}/wiki?id=${wiki_id}&amp;region=${region}&amp;species=${species}&amp;habitat=${habitat}&amp;action=add" class="close">Cancel</a>
+	</fieldset>
+</form>
+</tal:block>
+</metal:block>
